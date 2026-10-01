@@ -1,1 +1,32 @@
 /* You can add global styles to this file, and also import other style files */
+
+app-chatbot .account-panel > .settings-button {
+	display: inline-flex;
+	flex: 0 0 38px;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	min-width: 38px;
+	height: 38px;
+	margin: 0;
+	padding: 0;
+	border: 1px solid #d7b894;
+	border-radius: 6px;
+	background: #374c3d;
+	color: #f4dfc5;
+	cursor: pointer;
+}
+
+app-chatbot .account-panel > .settings-button:hover,
+app-chatbot .account-panel > .settings-button:focus-visible {
+	background: #536b56;
+	outline: 2px solid #f4dfc5;
+	outline-offset: 2px;
+}
+
+app-chatbot .account-panel > .settings-button .settings-icon {
+	display: block;
+	width: 20px;
+	height: 20px;
+	fill: currentColor;
+}

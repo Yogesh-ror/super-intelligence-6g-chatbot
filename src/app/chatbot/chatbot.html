@@ -1,0 +1,271 @@
+<main *ngIf="isCheckingSession" class="auth-loading" aria-live="polite">
+	<div class="loading-mark" aria-hidden="true"><img src="/logo.png?v=2" alt=""></div>
+	<p>Opening your thinking room...</p>
+</main>
+
+<main *ngIf="!isAuthenticated && !isCheckingSession" class="auth-shell">
+	<section class="auth-card" aria-labelledby="auth-title">
+		<div class="auth-art" aria-hidden="true">
+			<span class="auth-orbit auth-orbit-one"></span>
+			<span class="auth-orbit auth-orbit-two"></span>
+			<span class="auth-mark"><img src="/logo.png?v=2" alt=""></span>
+		</div>
+		<div class="auth-heading">
+			<a class="auth-brand" href="/" aria-label="Super Intelligence 6G home"><span class="brand-mark" aria-hidden="true"><img src="/logo.png?v=2" alt=""></span><span>Super Intelligence 6G</span></a>
+			<p class="eyebrow"><span></span> Your thinking room</p>
+			<h1 id="auth-title">Keep your thoughts<br><em>close.</em></h1>
+			<p class="auth-copy">Sign in to return to your conversations, or make a quiet place for new ones.</p>
+		</div>
+
+		<div class="auth-form-panel" [class.auth-signup-panel]="authMode === 'signup'">
+			<div class="auth-panel-heading">
+				<h2>{{ authMode === 'login' ? 'Welcome back' : 'Make it yours' }}</h2>
+				<p>{{ authMode === 'login' ? 'Pick up where your best thoughts left off.' : 'A private room for everything on your mind.' }}</p>
+			</div>
+			<div class="auth-tabs" role="tablist" aria-label="Account access">
+			<button type="button" role="tab" [attr.aria-selected]="authMode === 'login'" [class.auth-tab-active]="authMode === 'login'" (click)="setAuthMode('login')">Sign in</button>
+			<button type="button" role="tab" [attr.aria-selected]="authMode === 'signup'" [class.auth-tab-active]="authMode === 'signup'" (click)="setAuthMode('signup')">Create account</button>
+			</div>
+
+			<form class="auth-form" (ngSubmit)="submitAuth()" novalidate>
+			<label *ngIf="authMode === 'signup'" class="auth-field">
+				<span>Your name</span>
+				<input [(ngModel)]="authName" name="name" type="text" autocomplete="name" placeholder="What should we call you?" required>
+			</label>
+			<label class="auth-field">
+				<span>Email address</span>
+				<input [(ngModel)]="authEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+			</label>
+			<label class="auth-field">
+				<span>Password</span>
+				<input [(ngModel)]="authPassword" name="password" type="password" [autocomplete]="authMode === 'signup' ? 'new-password' : 'current-password'" placeholder="At least 8 characters" required>
+			</label>
+			<label *ngIf="authMode === 'signup'" class="auth-field">
+				<span>Confirm password</span>
+				<input [(ngModel)]="authConfirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat your password" required>
+			</label>
+			<p *ngIf="authError" class="auth-error" role="alert">{{ authError }}</p>
+			<button class="auth-submit" type="submit" [disabled]="isSubmittingAuth">
+				{{ isSubmittingAuth ? 'Opening your room...' : (authMode === 'login' ? 'Enter your room' : 'Create your room') }}
+				<span aria-hidden="true">↗</span>
+			</button>
+			</form>
+			<p class="auth-footnote"><span aria-hidden="true">✦</span> Your conversations are encrypted and private.</p>
+		</div>
+	</section>
+</main>
+
+<main *ngIf="isAuthenticated" class="chat-app" [class.dark-theme]="appearance === 'dark'">
+	<aside class="sidebar" [class.sidebar-open]="sidebarOpen" aria-label="Conversation history">
+		<div class="sidebar-top">
+			<a class="brand" href="/" aria-label="Super Intelligence 6G home">
+				<span class="brand-mark" aria-hidden="true"><img src="/logo.png?v=2" alt=""></span>
+				<span>Super Intelligence 6G</span>
+			</a>
+			<button class="icon-button sidebar-close" type="button" aria-label="Close menu" (click)="sidebarOpen = false">×</button>
+		</div>
+
+		<button class="new-chat-button" type="button" (click)="startConversation()">
+			<span aria-hidden="true">＋</span>New conversation
+		</button>
+		<label class="search-field">
+			<span aria-hidden="true">⌕</span>
+			<input type="search" [(ngModel)]="searchQuery" placeholder="Find a conversation" aria-label="Find a conversation">
+		</label>
+
+		<p class="section-label">Recent conversations</p>
+		<nav class="conversation-list" aria-label="Recent conversations">
+			<button *ngFor="let conversation of filteredConversations; trackBy: trackById" class="conversation-item" [class.conversation-active]="conversation.id === activeConversationId" type="button" (click)="selectConversation(conversation.id)">
+				<span class="conversation-dot" aria-hidden="true"></span>
+				<span class="conversation-title">{{ conversation.title }}</span>
+			</button>
+			<p *ngIf="filteredConversations.length === 0" class="empty-search">No conversations found.</p>
+		</nav>
+
+		<button *ngIf="isAdmin" class="admin-access-button" type="button" (click)="openAdminPanel()">
+			<span class="admin-access-icon" aria-hidden="true">✦</span>
+			<span><strong>Admin console</strong><small>Users &amp; access</small></span>
+			<span class="admin-access-arrow" aria-hidden="true">↗</span>
+		</button>
+
+		<div class="account-panel">
+			<div class="account-avatar" aria-hidden="true">{{ currentUserName.charAt(0).toUpperCase() }}</div>
+			<div class="account-details"><strong>{{ currentUserName }}</strong></div>
+			<button class="settings-button" type="button" aria-label="Open settings" title="Settings" (click)="openSettings()">
+				<svg class="settings-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" /></svg>
+			</button>
+		</div>
+		<button class="delete-chats-button" type="button" [disabled]="isDeletingChats" (click)="deleteAllConversations()">
+			<span aria-hidden="true">⌫</span>{{ isDeletingChats ? 'Deleting chats...' : 'Delete all chats' }}
+		</button>
+		<div class="sidebar-note"><span class="status-dot" aria-hidden="true"></span><span>Saved privately on this device</span></div>
+	</aside>
+
+	<button class="sidebar-backdrop" [class.backdrop-visible]="sidebarOpen" type="button" aria-label="Close menu" (click)="sidebarOpen = false"></button>
+
+	<section *ngIf="!showAdminPanel && !showSettings" class="workspace" aria-label="Chat">
+		<header class="topbar">
+			<button class="icon-button menu-button" type="button" aria-label="Open conversation menu" (click)="sidebarOpen = true">☰</button>
+			<div class="current-chat">
+				<span class="current-chat-label">YOUR THINKING ROOM</span>
+				<span class="current-chat-title">{{ activeConversation.title }}</span>
+			</div>
+			<div class="topbar-actions">
+				<button class="icon-button" type="button" aria-label="Export conversation" title="Export conversation" [disabled]="!activeConversation.messages.length" (click)="exportConversation()">⇩</button>
+				<button class="icon-button" type="button" aria-label="Clear conversation" title="Clear conversation" [disabled]="!activeConversation.messages.length" (click)="clearConversation()">⌫</button>
+			</div>
+		</header>
+
+		<div class="chat-scroll">
+			<section *ngIf="activeConversation.messages.length === 0" class="welcome-panel" aria-labelledby="welcome-title">
+				<div class="welcome-art" aria-hidden="true">
+					<span class="art-ring art-ring-one"></span>
+					<span class="art-ring art-ring-two"></span>
+										<span class="art-center"><img src="/logo.png?v=2" alt=""></span>
+					<span class="art-star art-star-one">✳</span>
+					<span class="art-star art-star-two">✦</span>
+				</div>
+				<p class="eyebrow"><span></span> A little room to think</p>
+				<h1 id="welcome-title">Make room for<br> a better thought.</h1>
+				<p class="welcome-copy">Bring a question, a half-formed idea, or the thing you can’t quite put into words. We’ll find a way through it together.</p>
+				<div class="suggestion-heading"><span>START SOMEWHERE</span><span>01 — 04</span></div>
+				<div class="suggestion-grid">
+					<button *ngFor="let suggestion of suggestions" class="suggestion" type="button" (click)="sendMessage(suggestion.prompt)">
+						<span class="suggestion-icon" aria-hidden="true">{{ suggestion.icon }}</span>
+						<span class="suggestion-title">{{ suggestion.title }}</span>
+						<span class="suggestion-arrow" aria-hidden="true">↗</span>
+					</button>
+				</div>
+			</section>
+
+			<section *ngIf="activeConversation.messages.length > 0" class="message-list" role="log" aria-live="polite" aria-label="Conversation messages">
+				<article *ngFor="let message of activeConversation.messages; trackBy: trackById" class="message-row" [class.user-row]="message.sender === 'user'">
+					<span *ngIf="message.sender === 'ai'" class="assistant-mark" aria-hidden="true"><img src="/logo.png?v=2" alt=""></span>
+					<div class="message-content">
+						<div class="message-meta">
+							<span>{{ message.sender === 'user' ? 'You' : 'Super Intelligence 6G' }}</span>
+							<time>{{ message.time }}</time>
+						</div>
+						<div class="message-body">
+							<ng-container *ngFor="let block of getMessageBlocks(message.text); let blockIndex = index">
+								<p *ngIf="block.type === 'text'" class="message-text">{{ getCleanMessageText(block.content) }}</p>
+								<div *ngIf="block.type === 'code'" class="code-block">
+									<div class="code-header"><span>{{ block.language }}</span><button type="button" (click)="copyCode(block, message, blockIndex)">{{ copiedMessageId === message.id + '-code-' + blockIndex ? 'Copied' : 'Copy code' }}</button></div>
+									<pre><code>{{ block.content }}</code></pre>
+								</div>
+							</ng-container>
+						</div>
+						<button *ngIf="message.sender === 'ai'" class="copy-button" type="button" (click)="copyMessage(message)"><span aria-hidden="true">⧉</span>{{ copiedMessageId === message.id ? 'Copied response' : 'Copy response' }}</button>
+					<a *ngFor="let pdf of getPdfLinks(message.text)" class="pdf-download" [href]="pdf.url" [attr.download]="pdf.label" target="_blank" rel="noopener noreferrer">Download {{ pdf.label }}</a>
+					</div>
+				</article>
+				<div *ngIf="isTyping" class="typing-row" role="status">
+					<span class="assistant-mark" aria-hidden="true"><img src="/logo.png?v=2" alt=""></span>
+					<span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+					<span>Thinking</span>
+				</div>
+			</section>
+		</div>
+
+		<footer class="composer-area">
+			<div *ngIf="selectedFiles.length" class="selected-files" aria-label="Attached files"><span *ngFor="let file of selectedFiles; let i = index" class="selected-file">{{ file.name }} <button type="button" (click)="removeSelectedFile(i)" [attr.aria-label]="'Remove ' + file.name">×</button></span></div>
+			<p *ngIf="fileError" class="file-error" role="alert">{{ fileError }}</p>
+			<div class="composer">
+				<label class="attach-button" aria-label="Attach text files" title="Attach text files"><span aria-hidden="true">＋</span><input type="file" multiple accept=".txt,.md,.csv,.json,.html,.htm,.css,.js,.ts,.xml,.yaml,.yml,.log" (change)="onFilesSelected($event)" [disabled]="isTyping" aria-label="Choose files to attach"></label>
+				<textarea [(ngModel)]="userMessage" (keydown.enter)="handleEnter($event)" rows="1" maxlength="5000" placeholder="Leave a thought here..." aria-label="Message Super Intelligence 6G" [disabled]="isTyping"></textarea>
+				<button class="send-button" type="button" aria-label="Send message" [disabled]="(!userMessage.trim() && !selectedFiles.length) || isTyping" (click)="sendMessage()">↑</button>
+			</div>
+			<p class="composer-hint">Enter to send <span>·</span> Shift + Enter for a new line</p>
+		</footer>
+	</section>
+
+	<section *ngIf="showAdminPanel" class="admin-workspace" aria-labelledby="admin-title">
+		<header class="admin-topbar">
+			<button class="back-to-chat" type="button" (click)="closeAdminPanel()"><span aria-hidden="true">←</span> Back to chat</button>
+			<span class="admin-kicker">SUPER INTELLIGENCE 6G / ADMIN</span>
+		</header>
+		<div class="admin-content">
+			<div class="admin-heading-row">
+				<div>
+					<p class="eyebrow admin-eyebrow"><span></span> Private workspace</p>
+					<h1 id="admin-title">Admin console</h1>
+					<p>Manage the people who have a room in Super Intelligence 6G.</p>
+				</div>
+				<button class="admin-refresh-button" type="button" (click)="loadAdminUsers()"><span aria-hidden="true">↻</span> Refresh</button>
+			</div>
+			<div class="admin-stats">
+				<div class="admin-stat"><span>Total users</span><strong>{{ adminUsers.length }}</strong></div>
+				<div class="admin-stat"><span>Access level</span><strong>Owner</strong></div>
+				<div class="admin-stat"><span>Data store</span><strong>Private</strong></div>
+			</div>
+			<section class="admin-users-card" aria-labelledby="users-title">
+				<div class="admin-users-heading"><h2 id="users-title">Registered users</h2><span>{{ adminUsers.length }} accounts</span></div>
+				<div class="admin-table-head"><span>User</span><span>Email</span><span>Joined</span></div>
+				<div *ngFor="let user of adminUsers; trackBy: trackByEmail" class="admin-table-row">
+					<span class="admin-table-user"><span class="admin-user-avatar" aria-hidden="true">{{ user.name.charAt(0).toUpperCase() }}</span><strong>{{ user.name }}</strong></span>
+					<span class="admin-table-email">{{ user.email }}</span>
+					<time>{{ user.createdAt | date:'mediumDate' }}</time>
+				</div>
+				<p *ngIf="adminUsers.length === 0" class="admin-empty">No registered users found.</p>
+			</section>
+		</div>
+	</section>
+
+	<section *ngIf="showSettings" class="settings-workspace" aria-labelledby="settings-title">
+		<header class="admin-topbar settings-topbar">
+			<button class="back-to-chat" type="button" (click)="closeSettings()"><span aria-hidden="true">←</span> Back to chat</button>
+			<span class="admin-kicker">SUPER INTELLIGENCE 6G / SETTINGS</span>
+		</header>
+		<div class="settings-content">
+			<div class="settings-heading">
+				<p class="eyebrow admin-eyebrow"><span></span> Your room, your rules</p>
+				<h1 id="settings-title">Settings</h1>
+				<p>Manage your account, privacy, and chat preferences.</p>
+			</div>
+
+			<section class="settings-section" aria-labelledby="account-settings-title">
+				<div class="settings-section-heading"><h2 id="account-settings-title">Account</h2><span>Personal details</span></div>
+				<div class="profile-card">
+					<div class="profile-avatar" aria-hidden="true">{{ currentUserName.charAt(0).toUpperCase() }}</div>
+					<div><strong>{{ currentUserName }}</strong><span>{{ currentUserEmail }}</span></div>
+				</div>
+			</section>
+
+			<section class="settings-section" aria-labelledby="privacy-settings-title">
+				<div class="settings-section-heading"><h2 id="privacy-settings-title">Privacy &amp; data</h2><span>Stored securely</span></div>
+				<div class="settings-list">
+					<div class="settings-row"><span><strong>Conversation history</strong><small>Your chats are linked only to your account.</small></span><b class="settings-status">Private</b></div>
+					<div class="settings-row"><span><strong>Privacy policy</strong><small>Review how your account and conversations are handled.</small></span><a href="/privacy" class="settings-link">View policy ↗</a></div>
+				</div>
+			</section>
+
+			<section class="settings-section" aria-labelledby="chat-settings-title">
+				<div class="settings-section-heading"><h2 id="chat-settings-title">Chat preferences</h2><span>Make it yours</span></div>
+				<div class="settings-list">
+					<label class="settings-row settings-select-row"><span><strong>Interface language</strong><small>Choose the language for your workspace.</small></span><select [(ngModel)]="language" (change)="savePreferences()" aria-label="Interface language"><option value="en">English</option><option value="hi">Hindi</option><option value="es">Spanish</option></select></label>
+					<label class="settings-row settings-select-row"><span><strong>Appearance</strong><small>Choose how Super Intelligence 6G looks on this device.</small></span><select [(ngModel)]="appearance" (change)="savePreferences()" aria-label="Appearance"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+					<label class="settings-row settings-toggle-row"><span><strong>Enter to send</strong><small>Press Enter to send a message.</small></span><input type="checkbox" [(ngModel)]="enterToSend" (change)="savePreferences()"><span class="toggle-track" aria-hidden="true"></span></label>
+					<label class="settings-row settings-toggle-row"><span><strong>Sound effects</strong><small>Play a subtle sound for new replies.</small></span><input type="checkbox" [(ngModel)]="soundEffects" (change)="savePreferences()"><span class="toggle-track" aria-hidden="true"></span></label>
+					<label class="settings-row settings-toggle-row"><span><strong>Compact responses</strong><small>Use tighter spacing for longer conversations.</small></span><input type="checkbox" [(ngModel)]="compactResponses" (change)="savePreferences()"><span class="toggle-track" aria-hidden="true"></span></label>
+				</div>
+			</section>
+
+			<section class="settings-section" aria-labelledby="shortcuts-title">
+				<div class="settings-section-heading"><h2 id="shortcuts-title">Shortcuts</h2><span>Quick actions</span></div>
+				<div class="settings-list shortcut-list"><div class="settings-row"><span><strong>Send message</strong><small>Use the composer to send.</small></span><kbd>Enter</kbd></div><div class="settings-row"><span><strong>New line</strong><small>Keep writing without sending.</small></span><kbd>Shift + Enter</kbd></div></div>
+			</section>
+
+			<section class="settings-section settings-support" aria-labelledby="support-title">
+				<div class="settings-section-heading"><h2 id="support-title">Need a hand?</h2><span>We are here</span></div>
+				<a class="contact-link" href="mailto:support@morrow.chat"><span aria-hidden="true">↗</span><span><strong>Contact support</strong><small>Send us a note about your account or chat.</small></span></a>
+			</section>
+
+			<section class="settings-section" aria-labelledby="about-title">
+				<div class="settings-section-heading"><h2 id="about-title">About Super Intelligence 6G</h2><span>Version 1.0</span></div>
+				<p class="about-copy">A quiet workspace for thinking, writing, and finding your next clear step.</p>
+			</section>
+
+			<button class="settings-logout" type="button" (click)="signOut()"><span aria-hidden="true">↪</span> Log out of Super Intelligence 6G</button>
+		</div>
+	</section>
+</main>

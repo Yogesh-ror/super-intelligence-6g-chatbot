@@ -12,6 +12,10 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+## AI provider configuration
+
+Set `GEMINI_API_KEY` and `OPENAI_API_KEY` in the root `.env` file to race Gemini and OpenAI for each chat request. The first non-empty successful response is returned and the other request is aborted. Requests may already incur provider charges before cancellation takes effect. You can set `ASSISTANT_MODEL` and `OPENAI_MODEL` to choose the models; defaults are `gemini-3.5-flash-lite` and `gpt-4o-mini`. Either provider can run alone when only its key is configured. Restart the server after changing `.env`.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
